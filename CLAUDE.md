@@ -43,27 +43,63 @@ The free SQL Server host enforces a strict 5 MB cap. All design decisions must r
 | IDAnime  | INT FK → Anime  |                                               |
 | Score    | INT (0–5)       | One review per user+anime; upsert on conflict |
 
-## Module Structure (planned)
+### SQL Schema (MySQL — freesqldatabase.com)
+
+```sql
+CREATE TABLE users (
+    IDUser INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    HashedPass VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Anime (
+    IDAnime INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    ImageURL VARCHAR(500) NOT NULL
+);
+
+CREATE TABLE Review (
+    IDReview INT AUTO_INCREMENT PRIMARY KEY,
+    IDUser INT NOT NULL,
+    IDAnime INT NOT NULL,
+    Score INT NOT NULL CHECK (Score >= 0 AND Score <= 5),
+    CONSTRAINT FK_Review_User FOREIGN KEY (IDUser) REFERENCES users(IDUser),
+    CONSTRAINT FK_Review_Anime FOREIGN KEY (IDAnime) REFERENCES Anime(IDAnime),
+    CONSTRAINT UQ_Review_UserAnime UNIQUE (IDUser, IDAnime)
+);
+```
+
+## Module Structure
 
 ```
 src/main/java/com/lucafu/anime_tracker_api/
 ├── AnimeTrackerApiApplication.java
-├── config/          # Spring Security, JWT filter, global config
-├── user/
-│   ├── controller/
-│   ├── service/
-│   └── repository/
-├── anime/
-│   ├── controller/
-│   ├── service/
-│   └── repository/
-└── review/
-    ├── controller/
-    ├── service/
-    └── repository/
+├── modules/
+│   ├── user/
+│   │   ├── controller/    → UserController
+│   │   ├── service/       → UserService (interface) + UserServiceImpl
+│   │   ├── repository/    → UserRepository
+│   │   ├── model/         → User (@Entity)
+│   │   └── dto/           → UserRequestDto, UserResponseDto
+│   ├── anime/
+│   │   ├── controller/    → AnimeController
+│   │   ├── service/       → AnimeService (interface) + AnimeServiceImpl
+│   │   ├── repository/    → AnimeRepository
+│   │   ├── model/         → Anime (@Entity)
+│   │   └── dto/           → AnimeRequestDto, AnimeResponseDto
+│   └── review/
+│       ├── controller/    → ReviewController
+│       ├── service/       → ReviewService (interface) + ReviewServiceImpl
+│       ├── repository/    → ReviewRepository
+│       ├── model/         → Review (@Entity)
+│       └── dto/           → ReviewRequestDto, ReviewResponseDto
+└── shared/
+    ├── config/            → SecurityConfig, CorsConfig
+    ├── security/          → JwtFilter, JwtUtil, AuthEntryPoint
+    └── exception/         → GlobalExceptionHandler, ApiError
 ```
 
-Each module is self-contained (controller → service → repository). Only `config/` is shared globally.
+Each module is self-contained (controller → service → repository). `shared/` is the only cross-cutting package.
 
 ## Current State
 
