@@ -1,0 +1,7 @@
+package com.lucafu.anime_tracker_api.modules.anime.repository;
+
+import com.lucafu.anime_tracker_api.modules.anime.model.Anime;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AnimeRepository extends JpaRepository<Anime, Integer> {
+}
