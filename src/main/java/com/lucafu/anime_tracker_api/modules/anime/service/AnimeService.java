@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AnimeService {
 
-    List<AnimeResponseDto> findAll();
+    List<AnimeResponseDto> findAll(String name);
 
     AnimeResponseDto findById(Integer id);
 
