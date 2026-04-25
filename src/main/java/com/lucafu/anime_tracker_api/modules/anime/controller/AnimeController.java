@@ -3,6 +3,7 @@ package com.lucafu.anime_tracker_api.modules.anime.controller;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeRequestDto;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeResponseDto;
 import com.lucafu.anime_tracker_api.modules.anime.service.AnimeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,8 @@ public class AnimeController {
     private final AnimeService animeService;
 
     @GetMapping
-    public ResponseEntity<List<AnimeResponseDto>> findAll() {
-        return ResponseEntity.ok(animeService.findAll());
+    public ResponseEntity<List<AnimeResponseDto>> findAll(@RequestParam(required = false) String name) {
+        return ResponseEntity.ok(animeService.findAll(name));
     }
 
     @GetMapping("/{id}")
@@ -28,12 +29,12 @@ public class AnimeController {
     }
 
     @PostMapping
-    public ResponseEntity<AnimeResponseDto> create(@RequestBody AnimeRequestDto dto) {
+    public ResponseEntity<AnimeResponseDto> create(@Valid @RequestBody AnimeRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(animeService.create(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AnimeResponseDto> update(@PathVariable Integer id, @RequestBody AnimeRequestDto dto) {
+    public ResponseEntity<AnimeResponseDto> update(@PathVariable Integer id, @Valid @RequestBody AnimeRequestDto dto) {
         return ResponseEntity.ok(animeService.update(id, dto));
     }
 

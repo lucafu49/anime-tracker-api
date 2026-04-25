@@ -18,18 +18,18 @@ public class AnimeServiceImpl implements AnimeService {
     private final AnimeRepository animeRepository;
 
     @Override
-    public List<AnimeResponseDto> findAll() {
-        return animeRepository.findAll()
-                .stream()
-                .map(this::toDto)
-                .toList();
+    public List<AnimeResponseDto> findAll(String name) {
+        List<Anime> results = (name != null && !name.isBlank())
+                ? animeRepository.findByNameContainingIgnoreCase(name)
+                : animeRepository.findAll();
+        return results.stream().map(this::toDto).toList();
     }
 
     @Override
     public AnimeResponseDto findById(Integer id) {
         return animeRepository.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
     }
 
     @Override
@@ -44,7 +44,7 @@ public class AnimeServiceImpl implements AnimeService {
     @Override
     public AnimeResponseDto update(Integer id, AnimeRequestDto dto) {
         Anime anime = animeRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
         anime.setName(dto.getName());
         anime.setImageUrl(dto.getImageUrl());
         anime.setClassic(dto.getClassic());
@@ -53,10 +53,9 @@ public class AnimeServiceImpl implements AnimeService {
 
     @Override
     public void delete(Integer id) {
-        if (!animeRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found: " + id);
-        }
-        animeRepository.deleteById(id);
+        Anime anime = animeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
+        animeRepository.delete(anime);
     }
 
     private AnimeResponseDto toDto(Anime anime) {
