@@ -3,6 +3,7 @@ package com.lucafu.anime_tracker_api.modules.user.controller;
 import com.lucafu.anime_tracker_api.modules.user.dto.LoginRequestDto;
 import com.lucafu.anime_tracker_api.modules.user.dto.LoginResponseDto;
 import com.lucafu.anime_tracker_api.shared.security.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +23,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );

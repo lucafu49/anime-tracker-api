@@ -1,6 +1,7 @@
 package com.lucafu.anime_tracker_api.shared.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,7 +39,7 @@ public class JwtUtil {
     public boolean isTokenValid(String token) {
         try {
             return !parseClaims(token).getExpiration().before(new Date());
-        } catch (Exception e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
