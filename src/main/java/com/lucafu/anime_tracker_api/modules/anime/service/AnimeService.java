@@ -2,14 +2,13 @@ package com.lucafu.anime_tracker_api.modules.anime.service;
 
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeRequestDto;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeResponseDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface AnimeService {
 
-    List<AnimeResponseDto> findAll(String name);
+    Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int page, Integer userId);
 
-    AnimeResponseDto findById(Integer id);
+    AnimeResponseDto findById(Integer id, Integer userId);
 
     AnimeResponseDto create(AnimeRequestDto dto);
 

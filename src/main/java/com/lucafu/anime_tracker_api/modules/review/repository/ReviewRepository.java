@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,8 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Review> findByAnime_IdAnime(Integer animeId);
 
     List<Review> findByUser_IdUser(Integer userId);
+
+    List<Review> findByUser_IdUserAndAnime_IdAnimeIn(Integer userId, Collection<Integer> animeIds);
 
     @Query("SELECT AVG(r.score) FROM Review r WHERE r.anime.idAnime = :animeId")
     BigDecimal findAverageScoreByAnimeId(@Param("animeId") Integer animeId);
