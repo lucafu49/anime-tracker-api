@@ -3,6 +3,8 @@ package com.lucafu.anime_tracker_api.modules.anime.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.math.BigDecimal;
+
 @Getter
 @AllArgsConstructor
 public class AnimeResponseDto {
@@ -11,4 +13,5 @@ public class AnimeResponseDto {
     private String name;
     private String imageUrl;
     private Boolean classic;
+    private BigDecimal averageScore;
 }

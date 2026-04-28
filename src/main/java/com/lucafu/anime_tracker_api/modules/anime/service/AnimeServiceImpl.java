@@ -4,6 +4,7 @@ import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeRequestDto;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeResponseDto;
 import com.lucafu.anime_tracker_api.modules.anime.model.Anime;
 import com.lucafu.anime_tracker_api.modules.anime.repository.AnimeRepository;
+import com.lucafu.anime_tracker_api.modules.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.List;
 public class AnimeServiceImpl implements AnimeService {
 
     private final AnimeRepository animeRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public List<AnimeResponseDto> findAll(String name) {
@@ -59,6 +61,12 @@ public class AnimeServiceImpl implements AnimeService {
     }
 
     private AnimeResponseDto toDto(Anime anime) {
-        return new AnimeResponseDto(anime.getIdAnime(), anime.getName(), anime.getImageUrl(), anime.getClassic());
+        return new AnimeResponseDto(
+                anime.getIdAnime(),
+                anime.getName(),
+                anime.getImageUrl(),
+                anime.getClassic(),
+                reviewRepository.findAverageScoreByAnimeId(anime.getIdAnime())
+        );
     }
 }
