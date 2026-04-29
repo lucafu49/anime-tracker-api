@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 public interface AnimeService {
 
-    Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int page, Integer userId);
+    Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int page, Integer userId, Boolean unreviewed);
 
     AnimeResponseDto findById(Integer id, Integer userId);
 

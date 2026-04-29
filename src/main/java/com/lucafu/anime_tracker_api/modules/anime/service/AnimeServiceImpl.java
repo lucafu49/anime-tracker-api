@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,11 +26,21 @@ public class AnimeServiceImpl implements AnimeService {
     private final ReviewRepository reviewRepository;
 
     @Override
-    public Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int pageNumber, Integer userId) {
+    public Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int pageNumber, Integer userId, Boolean unreviewed) {
         boolean hasName = name != null && !name.isBlank();
 
         Page<Anime> animePage;
-        if ("score".equals(sort)) {
+        if (Boolean.TRUE.equals(unreviewed)) {
+            if ("score".equals(sort)) {
+                animePage = animeRepository.findUnreviewedSortedByAverageScore(
+                        hasName ? name : null, classic, userId, PageRequest.of(pageNumber, 12));
+            } else {
+                PageRequest pageable = "name".equals(sort)
+                        ? PageRequest.of(pageNumber, 12, Sort.by(Sort.Direction.ASC, "name"))
+                        : PageRequest.of(pageNumber, 12);
+                animePage = animeRepository.findUnreviewed(hasName ? name : null, classic, userId, pageable);
+            }
+        } else if ("score".equals(sort)) {
             animePage = animeRepository.findAllSortedByAverageScore(hasName ? name : null, classic, PageRequest.of(pageNumber, 12));
         } else {
             PageRequest pageable = "name".equals(sort)
@@ -48,7 +59,7 @@ public class AnimeServiceImpl implements AnimeService {
         }
 
         List<Integer> animeIds = animePage.getContent().stream().map(Anime::getIdAnime).toList();
-        Map<Integer, Integer> userScores = reviewRepository
+        Map<Integer, BigDecimal> userScores = reviewRepository
                 .findByUser_IdUserAndAnime_IdAnimeIn(userId, animeIds)
                 .stream()
                 .collect(Collectors.toMap(r -> r.getAnime().getIdAnime(), r -> r.getScore()));
@@ -60,7 +71,7 @@ public class AnimeServiceImpl implements AnimeService {
     public AnimeResponseDto findById(Integer id, Integer userId) {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
-        Integer userScore = reviewRepository.findByUser_IdUserAndAnime_IdAnime(userId, id)
+        BigDecimal userScore = reviewRepository.findByUser_IdUserAndAnime_IdAnime(userId, id)
                 .map(r -> r.getScore())
                 .orElse(null);
         return toDto(anime, userScore);
@@ -92,7 +103,11 @@ public class AnimeServiceImpl implements AnimeService {
         animeRepository.delete(anime);
     }
 
-    private AnimeResponseDto toDto(Anime anime, Integer userScore) {
+    private AnimeResponseDto toDto(Anime anime) {
+        return toDto(anime, null);
+    }
+
+    private AnimeResponseDto toDto(Anime anime, BigDecimal userScore) {
         return new AnimeResponseDto(
                 anime.getIdAnime(),
                 anime.getName(),

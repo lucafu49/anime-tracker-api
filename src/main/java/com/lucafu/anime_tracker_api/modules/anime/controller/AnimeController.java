@@ -28,9 +28,10 @@ public class AnimeController {
             @RequestParam(required = false) Boolean classic,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) Boolean unreviewed,
             Authentication authentication) {
         Integer userId = resolveUserId(authentication);
-        return ResponseEntity.ok(animeService.findAll(name, classic, sort, page, userId));
+        return ResponseEntity.ok(animeService.findAll(name, classic, sort, page, userId, unreviewed));
     }
 
     @GetMapping("/{id}")
