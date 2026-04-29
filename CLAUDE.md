@@ -6,13 +6,13 @@ Private anime rating web app for a fixed group of 3 users (no public registratio
 
 - **Backend:** Spring Boot 4.x (Java 21), Maven
 - **Frontend:** React + Vite (not scaffolded yet)
-- **Database:** SQL Server hosted on freesqldatabase.com
+- **Database:** PostgreSQL hosted on freesqldatabase.com
 - **Auth:** Stateless JWT via `io.jsonwebtoken` (jjwt) + Spring Security
 - **Architecture:** Modular Monolith
 
 ## Critical Constraint: 5 MB Database Limit
 
-The free SQL Server host enforces a strict 5 MB cap. All design decisions must respect this:
+The free PostgreSQL host enforces a strict 5 MB cap. All design decisions must respect this:
 
 - Anime images are stored as **URLs only** (no binary/blob storage)
 - No audit logs, history tables, or session records in DB
@@ -34,39 +34,45 @@ The free SQL Server host enforces a strict 5 MB cap. All design decisions must r
 | IDAnime   | INT PK identity |                              |
 | Name      | VARCHAR         |                              |
 | ImageURL  | VARCHAR         | External URL, no binary data |
+| Classic   | BOOLEAN         | Default false                |
 
 ### `Review`
-| Column   | Type            | Notes                                         |
-|----------|-----------------|-----------------------------------------------|
-| IDReview | INT PK identity |                                               |
-| IDUser   | INT FK → User   |                                               |
-| IDAnime  | INT FK → Anime  |                                               |
-| Score    | INT (0–5)       | One review per user+anime; upsert on conflict |
+| Column   | Type              | Notes                                         |
+|----------|-------------------|-----------------------------------------------|
+| IDReview | INT PK identity   |                                               |
+| IDUser   | INT FK → User     |                                               |
+| IDAnime  | INT FK → Anime    |                                               |
+| Score    | DECIMAL(3,1) 0–5  | One review per user+anime; upsert on conflict |
 
-### SQL Schema (MySQL — freesqldatabase.com)
+### SQL Schema (PostgreSQL — freesqldatabase.com)
 
 ```sql
 CREATE TABLE users (
-    IDUser INT AUTO_INCREMENT PRIMARY KEY,
+    IDUser SERIAL PRIMARY KEY,
     Username VARCHAR(50) NOT NULL UNIQUE,
     HashedPass VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Anime (
-    IDAnime INT AUTO_INCREMENT PRIMARY KEY,
+    IDAnime SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     ImageURL VARCHAR(500) NOT NULL
 );
 
 CREATE TABLE Review (
-    IDReview INT AUTO_INCREMENT PRIMARY KEY,
+    IDReview SERIAL PRIMARY KEY,
     IDUser INT NOT NULL,
     IDAnime INT NOT NULL,
-    Score INT NOT NULL CHECK (Score >= 0 AND Score <= 5),
+    Score DECIMAL(3,1) NOT NULL,
     CONSTRAINT FK_Review_User FOREIGN KEY (IDUser) REFERENCES users(IDUser),
     CONSTRAINT FK_Review_Anime FOREIGN KEY (IDAnime) REFERENCES Anime(IDAnime),
     CONSTRAINT UQ_Review_UserAnime UNIQUE (IDUser, IDAnime)
 );
+
+ALTER TABLE Review ALTER COLUMN Score TYPE DECIMAL(3,1);
+ALTER TABLE Review ADD CONSTRAINT chk_score CHECK (Score >= 0 AND Score <= 5);
+
+ALTER TABLE Anime ADD COLUMN Classic BOOLEAN NOT NULL DEFAULT FALSE;
 ```
 
 ## Module Structure
@@ -108,7 +114,7 @@ The project is a Spring Boot shell — no domain modules are implemented yet.
 - `AnimeTrackerApiApplication.java` — main entry point
 - `application.properties` — reads DB connection from env vars: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
 - JPA DDL mode: `validate` (schema is managed manually via SQL script, not auto-generated)
-- Dependencies already declared: Spring Data JPA, Spring Security, Spring Web, SQL Server JDBC, Lombok
+- Dependencies already declared: Spring Data JPA, Spring Security, Spring Web, PostgreSQL JDBC, Lombok
 
 ## Auth Flow
 
