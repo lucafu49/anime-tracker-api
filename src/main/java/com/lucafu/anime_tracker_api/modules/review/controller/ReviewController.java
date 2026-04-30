@@ -41,6 +41,11 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.findByUser(userId));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReviewResponseDto>> findByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(reviewService.findByUser(userId));
+    }
+
     @DeleteMapping("/{animeId}")
     public ResponseEntity<Void> delete(Authentication authentication, @PathVariable Integer animeId) {
         Integer userId = resolveUserId(authentication);
