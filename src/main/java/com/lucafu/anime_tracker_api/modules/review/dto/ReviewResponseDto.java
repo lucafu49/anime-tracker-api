@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class ReviewResponseDto {
     private Integer userId;
     private String username;
     private BigDecimal score;
+    private LocalDateTime createdAt;
 }

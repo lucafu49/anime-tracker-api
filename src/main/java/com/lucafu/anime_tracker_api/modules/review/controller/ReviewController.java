@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.data.domain.Page;
 import java.util.List;
 
 @RestController
@@ -22,6 +23,13 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final UserRepository userRepository;
+
+    @GetMapping
+    public ResponseEntity<Page<ReviewResponseDto>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(reviewService.findAll(page, size));
+    }
 
     @PostMapping
     public ResponseEntity<ReviewResponseDto> upsert(Authentication authentication,
