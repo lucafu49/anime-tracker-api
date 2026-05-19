@@ -59,12 +59,31 @@ public class AnimeServiceImpl implements AnimeService {
         }
 
         List<Integer> animeIds = animePage.getContent().stream().map(Anime::getIdAnime).toList();
+
         Map<Integer, BigDecimal> userScores = reviewRepository
                 .findByUser_IdUserAndAnime_IdAnimeIn(userId, animeIds)
                 .stream()
                 .collect(Collectors.toMap(r -> r.getAnime().getIdAnime(), r -> r.getScore()));
 
-        return animePage.map(anime -> toDto(anime, userScores.get(anime.getIdAnime())));
+        Map<Integer, BigDecimal> averageScores = reviewRepository
+                .findAverageScoresByAnimeIds(animeIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> ((Number) r[0]).intValue(),
+                        r -> r[1] != null ? BigDecimal.valueOf(((Number) r[1]).doubleValue()) : null));
+
+        Map<Integer, Integer> ratingCounts = reviewRepository
+                .findRatingCountsByAnimeIds(animeIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> ((Number) r[0]).intValue(),
+                        r -> ((Number) r[1]).intValue()));
+
+        return animePage.map(anime -> toDto(
+                anime,
+                userScores.get(anime.getIdAnime()),
+                averageScores.get(anime.getIdAnime()),
+                ratingCounts.getOrDefault(anime.getIdAnime(), 0)));
     }
 
     @Override
@@ -74,7 +93,9 @@ public class AnimeServiceImpl implements AnimeService {
         BigDecimal userScore = reviewRepository.findByUser_IdUserAndAnime_IdAnime(userId, id)
                 .map(r -> r.getScore())
                 .orElse(null);
-        return toDto(anime, userScore);
+        BigDecimal averageScore = reviewRepository.findAverageScoreByAnimeId(id);
+        Long count = reviewRepository.findRatingCountByAnimeId(id);
+        return toDto(anime, userScore, averageScore, count != null ? count.intValue() : 0);
     }
 
     @Override
@@ -83,7 +104,7 @@ public class AnimeServiceImpl implements AnimeService {
         anime.setName(dto.getName());
         anime.setImageUrl(dto.getImageUrl());
         anime.setClassic(dto.getClassic());
-        return toDto(animeRepository.save(anime));
+        return toDto(animeRepository.save(anime), null, null, 0);
     }
 
     @Override
@@ -93,7 +114,8 @@ public class AnimeServiceImpl implements AnimeService {
         anime.setName(dto.getName());
         anime.setImageUrl(dto.getImageUrl());
         anime.setClassic(dto.getClassic());
-        return toDto(animeRepository.save(anime));
+        Long count = reviewRepository.findRatingCountByAnimeId(id);
+        return toDto(animeRepository.save(anime), null, reviewRepository.findAverageScoreByAnimeId(id), count != null ? count.intValue() : 0);
     }
 
     @Override
@@ -103,17 +125,14 @@ public class AnimeServiceImpl implements AnimeService {
         animeRepository.delete(anime);
     }
 
-    private AnimeResponseDto toDto(Anime anime) {
-        return toDto(anime, null);
-    }
-
-    private AnimeResponseDto toDto(Anime anime, BigDecimal userScore) {
+    private AnimeResponseDto toDto(Anime anime, BigDecimal userScore, BigDecimal averageScore, Integer ratingCount) {
         return new AnimeResponseDto(
                 anime.getIdAnime(),
                 anime.getName(),
                 anime.getImageUrl(),
                 anime.getClassic(),
-                reviewRepository.findAverageScoreByAnimeId(anime.getIdAnime()),
+                averageScore,
+                ratingCount,
                 userScore
         );
     }

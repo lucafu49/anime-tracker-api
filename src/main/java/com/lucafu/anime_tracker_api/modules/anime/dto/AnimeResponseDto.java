@@ -14,5 +14,6 @@ public class AnimeResponseDto {
     private String imageUrl;
     private Boolean classic;
     private BigDecimal averageScore;
+    private Integer ratingCount;
     private BigDecimal userScore;
 }

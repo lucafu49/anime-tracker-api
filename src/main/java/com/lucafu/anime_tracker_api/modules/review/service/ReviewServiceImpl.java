@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
 
 @Service
@@ -22,6 +24,12 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final AnimeRepository animeRepository;
     private final UserRepository userRepository;
+
+    @Override
+    public Page<ReviewResponseDto> findAll(int page, int size) {
+        return reviewRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size))
+                .map(this::toDto);
+    }
 
     @Override
     public ReviewResponseDto upsert(Integer userId, ReviewRequestDto dto) {
@@ -67,7 +75,8 @@ public class ReviewServiceImpl implements ReviewService {
                 review.getAnime().getName(),
                 review.getUser().getIdUser(),
                 review.getUser().getUsername(),
-                review.getScore()
+                review.getScore(),
+                review.getCreatedAt()
         );
     }
 }

@@ -5,6 +5,9 @@ import com.lucafu.anime_tracker_api.modules.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,4 +30,8 @@ public class Review {
 
     @Column(name = "Score", nullable = false, precision = 3, scale = 1)
     private java.math.BigDecimal score;
+
+    @CreationTimestamp
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 }
