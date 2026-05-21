@@ -73,6 +73,7 @@ public class ReviewServiceImpl implements ReviewService {
                 review.getIdReview(),
                 review.getAnime().getIdAnime(),
                 review.getAnime().getName(),
+                review.getAnime().getImageUrl(),
                 review.getUser().getIdUser(),
                 review.getUser().getUsername(),
                 review.getScore(),

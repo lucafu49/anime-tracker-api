@@ -13,6 +13,7 @@ public class ReviewResponseDto {
     private Integer idReview;
     private Integer animeId;
     private String animeName;
+    private String animeImageUrl;
     private Integer userId;
     private String username;
     private BigDecimal score;
