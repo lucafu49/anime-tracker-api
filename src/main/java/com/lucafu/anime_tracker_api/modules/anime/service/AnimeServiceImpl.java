@@ -2,9 +2,14 @@ package com.lucafu.anime_tracker_api.modules.anime.service;
 
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeRequestDto;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeResponseDto;
+import com.lucafu.anime_tracker_api.modules.anime.dto.CircleMemberRatingDto;
+import com.lucafu.anime_tracker_api.modules.anime.dto.TitleResponseDto;
 import com.lucafu.anime_tracker_api.modules.anime.model.Anime;
 import com.lucafu.anime_tracker_api.modules.anime.repository.AnimeRepository;
+import com.lucafu.anime_tracker_api.modules.review.model.Review;
 import com.lucafu.anime_tracker_api.modules.review.repository.ReviewRepository;
+import com.lucafu.anime_tracker_api.modules.user.model.User;
+import com.lucafu.anime_tracker_api.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,6 +30,47 @@ public class AnimeServiceImpl implements AnimeService {
 
     private final AnimeRepository animeRepository;
     private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    public List<TitleResponseDto> findTitles() {
+        List<Anime> animes = animeRepository.findAnimesWithAtLeastOneReview();
+        List<Integer> animeIds = animes.stream().map(Anime::getIdAnime).toList();
+        List<User> allUsers = userRepository.findAll();
+        List<Review> reviews = reviewRepository.findByAnime_IdAnimeIn(animeIds);
+
+        Map<Integer, List<Review>> reviewsByAnime = reviews.stream()
+                .collect(Collectors.groupingBy(r -> r.getAnime().getIdAnime()));
+
+        int totalCircleSize = allUsers.size();
+
+        return animes.stream().map(anime -> {
+            List<Review> animeReviews = reviewsByAnime.getOrDefault(anime.getIdAnime(), List.of());
+
+            Map<Integer, BigDecimal> scoreByUserId = animeReviews.stream()
+                    .collect(Collectors.toMap(r -> r.getUser().getIdUser(), Review::getScore));
+
+            BigDecimal avg = animeReviews.isEmpty() ? null :
+                    animeReviews.stream()
+                            .map(Review::getScore)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add)
+                            .divide(BigDecimal.valueOf(animeReviews.size()), 2, RoundingMode.HALF_UP);
+
+            List<CircleMemberRatingDto> ratings = allUsers.stream()
+                    .map(u -> new CircleMemberRatingDto(u.getIdUser(), u.getUsername(), scoreByUserId.get(u.getIdUser())))
+                    .toList();
+
+            return new TitleResponseDto(
+                    anime.getIdAnime(),
+                    anime.getName(),
+                    anime.getImageUrl(),
+                    avg,
+                    animeReviews.size(),
+                    totalCircleSize,
+                    ratings
+            );
+        }).toList();
+    }
 
     @Override
     public Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int pageNumber, Integer userId, Boolean unreviewed) {

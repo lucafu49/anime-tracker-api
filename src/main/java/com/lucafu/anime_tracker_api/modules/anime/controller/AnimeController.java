@@ -2,6 +2,7 @@ package com.lucafu.anime_tracker_api.modules.anime.controller;
 
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeRequestDto;
 import com.lucafu.anime_tracker_api.modules.anime.dto.AnimeResponseDto;
+import com.lucafu.anime_tracker_api.modules.anime.dto.TitleResponseDto;
 import com.lucafu.anime_tracker_api.modules.anime.service.AnimeService;
 import com.lucafu.anime_tracker_api.modules.user.model.User;
 import com.lucafu.anime_tracker_api.modules.user.repository.UserRepository;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,11 @@ public class AnimeController {
 
     private final AnimeService animeService;
     private final UserRepository userRepository;
+
+    @GetMapping("/titles")
+    public ResponseEntity<List<TitleResponseDto>> findTitles() {
+        return ResponseEntity.ok(animeService.findTitles());
+    }
 
     @GetMapping
     public ResponseEntity<Page<AnimeResponseDto>> findAll(

@@ -7,7 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface AnimeRepository extends JpaRepository<Anime, Integer> {
+
+    @Query("SELECT DISTINCT a FROM Anime a WHERE EXISTS (SELECT r FROM Review r WHERE r.anime = a)")
+    List<Anime> findAnimesWithAtLeastOneReview();
 
     Page<Anime> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
