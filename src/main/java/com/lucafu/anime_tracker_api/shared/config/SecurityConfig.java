@@ -3,6 +3,7 @@ package com.lucafu.anime_tracker_api.shared.config;
 import com.lucafu.anime_tracker_api.modules.user.service.UserDetailsServiceImpl;
 import com.lucafu.anime_tracker_api.shared.security.AuthEntryPoint;
 import com.lucafu.anime_tracker_api.shared.security.JwtFilter;
+import com.lucafu.anime_tracker_api.shared.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtFilter jwtFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final AuthEntryPoint authEntryPoint;
     private final CorsConfigurationSource corsConfigurationSource;
 
@@ -41,7 +43,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login").permitAll()
                 .anyRequest().authenticated())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(rateLimitFilter, JwtFilter.class);
 
         return http.build();
     }
