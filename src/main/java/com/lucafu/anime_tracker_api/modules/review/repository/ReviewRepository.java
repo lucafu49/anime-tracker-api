@@ -35,4 +35,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Object[]> findRatingCountsByAnimeIds(@Param("animeIds") Collection<Integer> animeIds);
 
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    List<Review> findByAnime_IdAnimeIn(Collection<Integer> animeIds);
 }

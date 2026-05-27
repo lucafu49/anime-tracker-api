@@ -5,7 +5,7 @@ import com.lucafu.anime_tracker_api.modules.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -25,13 +25,13 @@ public class Review {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IDAnime", nullable = false)
+    @JoinColumn(name = "IDAnime", nullable = false, foreignKey = @ForeignKey(name = "FK_Review_Anime"))
     private Anime anime;
 
     @Column(name = "Score", nullable = false, precision = 3, scale = 1)
     private java.math.BigDecimal score;
 
-    @CreationTimestamp
-    @Column(name = "CreatedAt", nullable = false, updatable = false)
+    @UpdateTimestamp
+    @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
