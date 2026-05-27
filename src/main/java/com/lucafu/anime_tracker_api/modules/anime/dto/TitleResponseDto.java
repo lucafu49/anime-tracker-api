@@ -13,6 +13,7 @@ public class TitleResponseDto {
     private Integer idAnime;
     private String name;
     private String imageUrl;
+    private Boolean classic;
     private BigDecimal circleAverageScore;
     private Integer circleRatingCount;
     private Integer totalCircleSize;

@@ -11,7 +11,7 @@ public interface AnimeService {
 
     List<TitleResponseDto> findTitles();
 
-    Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int page, Integer userId, Boolean unreviewed);
+    Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int page, Integer userId, Boolean unreviewed, Integer reviewedBy);
 
     AnimeResponseDto findById(Integer id, Integer userId);
 

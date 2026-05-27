@@ -25,7 +25,7 @@ public class Review {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "IDAnime", nullable = false)
+    @JoinColumn(name = "IDAnime", nullable = false, foreignKey = @ForeignKey(name = "FK_Review_Anime"))
     private Anime anime;
 
     @Column(name = "Score", nullable = false, precision = 3, scale = 1)

@@ -12,12 +12,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
+
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> findAll() {
+        List<UserResponseDto> users = userRepository.findAll().stream()
+                .map(u -> new UserResponseDto(u.getIdUser(), u.getUsername()))
+                .toList();
+        return ResponseEntity.ok(users);
+    }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> me(Authentication authentication) {

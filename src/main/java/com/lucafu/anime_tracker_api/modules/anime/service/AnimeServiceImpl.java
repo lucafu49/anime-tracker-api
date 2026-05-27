@@ -64,6 +64,7 @@ public class AnimeServiceImpl implements AnimeService {
                     anime.getIdAnime(),
                     anime.getName(),
                     anime.getImageUrl(),
+                    anime.getClassic(),
                     avg,
                     animeReviews.size(),
                     totalCircleSize,
@@ -73,11 +74,21 @@ public class AnimeServiceImpl implements AnimeService {
     }
 
     @Override
-    public Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int pageNumber, Integer userId, Boolean unreviewed) {
+    public Page<AnimeResponseDto> findAll(String name, Boolean classic, String sort, int pageNumber, Integer userId, Boolean unreviewed, Integer reviewedBy) {
         boolean hasName = name != null && !name.isBlank();
 
         Page<Anime> animePage;
-        if (Boolean.TRUE.equals(unreviewed)) {
+        if (reviewedBy != null) {
+            if ("score".equals(sort)) {
+                animePage = animeRepository.findReviewedBySortedByAverageScore(
+                        reviewedBy, hasName ? name : null, classic, PageRequest.of(pageNumber, 12));
+            } else {
+                PageRequest pageable = "name".equals(sort)
+                        ? PageRequest.of(pageNumber, 12, Sort.by(Sort.Direction.ASC, "name"))
+                        : PageRequest.of(pageNumber, 12);
+                animePage = animeRepository.findReviewedBy(reviewedBy, hasName ? name : null, classic, pageable);
+            }
+        } else if (Boolean.TRUE.equals(unreviewed)) {
             if ("score".equals(sort)) {
                 animePage = animeRepository.findUnreviewedSortedByAverageScore(
                         hasName ? name : null, classic, userId, PageRequest.of(pageNumber, 12));
@@ -169,6 +180,7 @@ public class AnimeServiceImpl implements AnimeService {
     public void delete(Integer id) {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
+        reviewRepository.deleteAll(reviewRepository.findByAnime_IdAnime(id));
         animeRepository.delete(anime);
     }
 
