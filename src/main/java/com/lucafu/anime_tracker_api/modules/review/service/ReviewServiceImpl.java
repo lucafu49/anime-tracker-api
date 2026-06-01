@@ -10,12 +10,14 @@ import com.lucafu.anime_tracker_api.modules.user.model.User;
 import com.lucafu.anime_tracker_api.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final AnimeRepository animeRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public Page<ReviewResponseDto> findAll(int page, int size) {
@@ -46,7 +49,13 @@ public class ReviewServiceImpl implements ReviewService {
         review.setAnime(anime);
         review.setScore(dto.getScore());
 
-        return toDto(reviewRepository.save(review));
+        ReviewResponseDto saved = toDto(reviewRepository.save(review));
+
+        // Broadcast a todos los suscriptores del feed global y del anime específico
+        messagingTemplate.convertAndSend("/topic/reviews", saved);
+        messagingTemplate.convertAndSend("/topic/reviews/" + saved.getAnimeId(), saved);
+
+        return saved;
     }
 
     @Override
@@ -66,6 +75,11 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findByUser_IdUserAndAnime_IdAnime(userId, animeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Review not found"));
         reviewRepository.delete(review);
+
+        // Broadcast del borrado: el feed global y el anime específico
+        Map<String, Integer> payload = Map.of("userId", userId, "animeId", animeId);
+        messagingTemplate.convertAndSend("/topic/reviews/deleted", payload);
+        messagingTemplate.convertAndSend("/topic/reviews/deleted/" + animeId, payload);
     }
 
     private ReviewResponseDto toDto(Review review) {
