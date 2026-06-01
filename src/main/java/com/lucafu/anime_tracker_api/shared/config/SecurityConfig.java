@@ -42,6 +42,7 @@ public class SecurityConfig {
                 ex.authenticationEntryPoint(authEntryPoint))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/login").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(rateLimitFilter, JwtFilter.class);
