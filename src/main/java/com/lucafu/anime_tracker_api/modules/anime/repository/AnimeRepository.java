@@ -27,7 +27,14 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
             WHERE (:name IS NULL OR a.Name ILIKE CONCAT('%', :name, '%'))
             AND (:classic IS NULL OR a.Classic = :classic)
             GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic
-            ORDER BY COALESCE(AVG(r.Score), -1) DESC
+            ORDER BY
+              CASE WHEN COUNT(r.Score) = 0 THEN -1
+              ELSE (
+                (CAST(COUNT(r.Score) AS numeric) / (COUNT(r.Score) + :minVotes)) * AVG(r.Score)
+                + (CAST(:minVotes AS numeric) / (COUNT(r.Score) + :minVotes)) * (SELECT AVG(Score) FROM Review)
+              )
+              END DESC,
+              COUNT(r.Score) DESC
             """,
             countQuery = """
             SELECT COUNT(*) FROM (
@@ -37,7 +44,8 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
             ) sub
             """,
             nativeQuery = true)
-    Page<Anime> findAllSortedByAverageScore(@Param("name") String name, @Param("classic") Boolean classic, Pageable pageable);
+    Page<Anime> findAllSortedByAverageScore(@Param("name") String name, @Param("classic") Boolean classic,
+                                            @Param("minVotes") int minVotes, Pageable pageable);
 
     @Query("""
             SELECT a FROM Anime a

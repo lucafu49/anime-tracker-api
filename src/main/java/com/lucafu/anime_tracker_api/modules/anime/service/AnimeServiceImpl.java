@@ -32,6 +32,11 @@ public class AnimeServiceImpl implements AnimeService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
 
+    // Constante "m" del promedio bayesiano usado para ordenar "Mejores Puntuados":
+    // pondera el promedio de cada anime contra la media global según su cantidad de votos.
+    // Valor bajo = penaliza poco a los animes con pocos votos.
+    private static final int BAYESIAN_MIN_VOTES = 2;
+
     @Override
     public List<TitleResponseDto> findTitles() {
         List<Anime> animes = animeRepository.findAnimesWithAtLeastOneReview();
@@ -99,7 +104,7 @@ public class AnimeServiceImpl implements AnimeService {
                 animePage = animeRepository.findUnreviewed(hasName ? name : null, classic, userId, pageable);
             }
         } else if ("score".equals(sort)) {
-            animePage = animeRepository.findAllSortedByAverageScore(hasName ? name : null, classic, PageRequest.of(pageNumber, 12));
+            animePage = animeRepository.findAllSortedByAverageScore(hasName ? name : null, classic, BAYESIAN_MIN_VOTES, PageRequest.of(pageNumber, 12));
         } else {
             PageRequest pageable = "name".equals(sort)
                     ? PageRequest.of(pageNumber, 12, Sort.by(Sort.Direction.ASC, "name"))
