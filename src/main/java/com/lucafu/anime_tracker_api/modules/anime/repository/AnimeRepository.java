@@ -21,12 +21,12 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
     Page<Anime> findByNameContainingIgnoreCaseAndClassic(String name, Boolean classic, Pageable pageable);
 
     @Query(value = """
-            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic
+            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             FROM Anime a
             LEFT JOIN Review r ON r.IDAnime = a.IDAnime
             WHERE (:name IS NULL OR a.Name ILIKE CONCAT('%', :name, '%'))
             AND (:classic IS NULL OR a.Classic = :classic)
-            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic
+            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             ORDER BY
               CASE WHEN COUNT(r.Score) = 0 THEN -1
               ELSE (
@@ -59,7 +59,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
                                @Param("userId") Integer userId, Pageable pageable);
 
     @Query(value = """
-            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic
+            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             FROM Anime a
             LEFT JOIN Review r ON r.IDAnime = a.IDAnime
             WHERE (:name IS NULL OR a.Name ILIKE CONCAT('%', :name, '%'))
@@ -67,7 +67,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
             AND NOT EXISTS (
                 SELECT 1 FROM Review r2 WHERE r2.IDAnime = a.IDAnime AND r2.IDUser = :userId
             )
-            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic
+            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             ORDER BY COALESCE(AVG(r.Score), -1) DESC
             """,
             countQuery = """
@@ -96,13 +96,13 @@ public interface AnimeRepository extends JpaRepository<Anime, Integer> {
                                Pageable pageable);
 
     @Query(value = """
-            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic
+            SELECT a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             FROM Anime a
             LEFT JOIN Review r ON r.IDAnime = a.IDAnime
             WHERE EXISTS (SELECT 1 FROM Review r2 WHERE r2.IDAnime = a.IDAnime AND r2.IDUser = :reviewedBy)
             AND (:name IS NULL OR a.Name ILIKE CONCAT('%', :name, '%'))
             AND (:classic IS NULL OR a.Classic = :classic)
-            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic
+            GROUP BY a.IDAnime, a.Name, a.ImageURL, a.Classic, a.Year
             ORDER BY COALESCE(AVG(r.Score), -1) DESC
             """,
             countQuery = """

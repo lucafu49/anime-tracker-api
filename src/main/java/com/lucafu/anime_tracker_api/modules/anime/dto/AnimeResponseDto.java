@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Getter
 @AllArgsConstructor
@@ -13,6 +14,8 @@ public class AnimeResponseDto {
     private String name;
     private String imageUrl;
     private Boolean classic;
+    private Integer year;
+    private Set<String> genres;
     private BigDecimal averageScore;
     private Integer ratingCount;
     private BigDecimal userScore;

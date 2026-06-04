@@ -91,7 +91,8 @@ public class ReviewServiceImpl implements ReviewService {
                 review.getUser().getIdUser(),
                 review.getUser().getUsername(),
                 review.getScore(),
-                review.getCreatedAt()
+                review.getCreatedAt(),
+                List.copyOf(review.getAnime().getGenres())
         );
     }
 }
