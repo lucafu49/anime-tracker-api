@@ -1,6 +1,7 @@
 package com.lucafu.anime_tracker_api.modules.review.repository;
 
 import com.lucafu.anime_tracker_api.modules.review.model.Review;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,6 +35,9 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     @Query("SELECT r.anime.idAnime, COUNT(r) FROM Review r WHERE r.anime.idAnime IN :animeIds GROUP BY r.anime.idAnime")
     List<Object[]> findRatingCountsByAnimeIds(@Param("animeIds") Collection<Integer> animeIds);
 
+    // Trae user y anime en el mismo JOIN para evitar N+1 al mapear cada review a DTO.
+    // (genres se carga aparte en lote vía hibernate.default_batch_fetch_size.)
+    @EntityGraph(attributePaths = {"user", "anime"})
     Page<Review> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     List<Review> findByAnime_IdAnimeIn(Collection<Integer> animeIds);

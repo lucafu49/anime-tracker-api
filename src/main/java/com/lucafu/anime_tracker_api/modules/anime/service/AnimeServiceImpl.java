@@ -70,6 +70,8 @@ public class AnimeServiceImpl implements AnimeService {
                     anime.getName(),
                     anime.getImageUrl(),
                     anime.getClassic(),
+                    anime.getYear(),
+                    anime.getGenres(),
                     avg,
                     animeReviews.size(),
                     totalCircleSize,
@@ -164,9 +166,7 @@ public class AnimeServiceImpl implements AnimeService {
     @Override
     public AnimeResponseDto create(AnimeRequestDto dto) {
         Anime anime = new Anime();
-        anime.setName(dto.getName());
-        anime.setImageUrl(dto.getImageUrl());
-        anime.setClassic(dto.getClassic());
+        applyDtoToAnime(dto, anime);
         return toDto(animeRepository.save(anime), null, null, 0);
     }
 
@@ -174,11 +174,21 @@ public class AnimeServiceImpl implements AnimeService {
     public AnimeResponseDto update(Integer id, AnimeRequestDto dto) {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
+        applyDtoToAnime(dto, anime);
+        Long count = reviewRepository.findRatingCountByAnimeId(id);
+        return toDto(animeRepository.save(anime), null, reviewRepository.findAverageScoreByAnimeId(id), count != null ? count.intValue() : 0);
+    }
+
+    // Centraliza la copia de campos del DTO a la entidad (evita repetición entre create y update)
+    private void applyDtoToAnime(AnimeRequestDto dto, Anime anime) {
         anime.setName(dto.getName());
         anime.setImageUrl(dto.getImageUrl());
         anime.setClassic(dto.getClassic());
-        Long count = reviewRepository.findRatingCountByAnimeId(id);
-        return toDto(animeRepository.save(anime), null, reviewRepository.findAverageScoreByAnimeId(id), count != null ? count.intValue() : 0);
+        anime.setYear(dto.getYear());
+        anime.getGenres().clear();
+        if (dto.getGenres() != null) {
+            anime.getGenres().addAll(dto.getGenres());
+        }
     }
 
     @Override
@@ -195,6 +205,8 @@ public class AnimeServiceImpl implements AnimeService {
                 anime.getName(),
                 anime.getImageUrl(),
                 anime.getClassic(),
+                anime.getYear(),
+                anime.getGenres(),
                 averageScore,
                 ratingCount,
                 userScore

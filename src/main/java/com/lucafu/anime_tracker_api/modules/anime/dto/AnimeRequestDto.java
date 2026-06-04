@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 public class AnimeRequestDto {
@@ -22,4 +25,10 @@ public class AnimeRequestDto {
 
     @NotNull(message = "Classic field is required")
     private Boolean classic;
+
+    // Opcionales — se completan via autocompletado de Jikan o manualmente
+    private Integer year;
+
+    @Size(max = 5, message = "Maximum 5 genres allowed")
+    private Set<@Size(max = 40, message = "Genre must be at most 40 characters") String> genres = new HashSet<>();
 }
